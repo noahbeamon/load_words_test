@@ -679,7 +679,8 @@ void processItem(uint8_t base){
             dictionaryIndex++;
         }
         //flash image to memory
-
+        //FlashCtl_programMemory(void* src, void* dest, uint32_t length);
+        FlashCtl_programMemory((void*) imageArray, (void*) FLASH_SECTOR0, sizeof(imageArray));
         //reset head and tail
         head = 0;
         tail = 0;
