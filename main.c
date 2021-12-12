@@ -670,6 +670,7 @@ void processItem(uint8_t base){
         struct image_properties tempImageProps;
         tempImageProps.height = imageHeight;
         tempImageProps.width = imageWidth;
+        tempImageProps.image_size = imageSize;
         strcpy(tempImageProps.image_type, imageType);
         strcpy(tempImageProps.image_word, word);
         dictionary[dictionaryIndex] = tempImageProps;
