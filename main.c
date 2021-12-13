@@ -530,6 +530,13 @@
 #include <string.h>
 #include <stdlib.h>
 
+int sector_array[32] = {FLASH_SECTOR0, FLASH_SECTOR1, FLASH_SECTOR2, FLASH_SECTOR3, FLASH_SECTOR4, FLASH_SECTOR5, FLASH_SECTOR6, FLASH_SECTOR7,
+                    FLASH_SECTOR8, FLASH_SECTOR9, FLASH_SECTOR10, FLASH_SECTOR11, FLASH_SECTOR12, FLASH_SECTOR13, FLASH_SECTOR14, FLASH_SECTOR15,
+                    FLASH_SECTOR16, FLASH_SECTOR17, FLASH_SECTOR18, FLASH_SECTOR19, FLASH_SECTOR20, FLASH_SECTOR21, FLASH_SECTOR22, FLASH_SECTOR23,
+                    FLASH_SECTOR24, FLASH_SECTOR25, FLASH_SECTOR26, FLASH_SECTOR27, FLASH_SECTOR28, FLASH_SECTOR29, FLASH_SECTOR30, FLASH_SECTOR31};
+
+void * dest = (char *) 0x00020000;
+
 struct image_properties{
     uint8_t height;
     uint8_t width;
@@ -674,14 +681,21 @@ void processItem(uint8_t base){
         strcpy(tempImageProps.image_type, imageType);
         strcpy(tempImageProps.image_word, word);
         dictionary[dictionaryIndex] = tempImageProps;
+
+        //flash image to memory
+        FlashCtl_unprotectSector(FLASH_MAIN_MEMORY_SPACE_BANK1, sector_array[dictionaryIndex]);
+        FlashCtl_initiateMassErase();
+        FlashCtl_enableWordProgramming(FLASH_IMMEDIATE_WRITE_MODE);
+        FlashCtl_programMemory(imageArray, dest, sizeof(imageArray));
+
+        //increment or reset dictionaryIndex
         if(dictionaryIndex == 31){
             dictionaryIndex = 0;
+            dest = (char *) 0x00020000;
         }else{
             dictionaryIndex++;
+            dest += 0x00001000;
         }
-        //flash image to memory
-        //FlashCtl_programMemory(void* src, void* dest, uint32_t length);
-        FlashCtl_programMemory((void*) imageArray, (void*) FLASH_SECTOR0, sizeof(imageArray));
         //reset head and tail
         head = 0;
         tail = 0;
@@ -755,7 +769,7 @@ int main(void)
     MAP_WDT_A_holdTimer();
 
     /* Selecting P1.2 and P1.3 in UART mode */
-    MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN2 | GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);
+    MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN1 | GPIO_PIN2, GPIO_PRIMARY_MODULE_FUNCTION);
 
     /* Setting DCO to 12MHz */
     CS_setDCOCenteredFrequency(CS_DCO_FREQUENCY_12);
